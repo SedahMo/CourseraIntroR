@@ -1,0 +1,55 @@
+---
+title: "Analysis on BRFSS2013"
+author: "Guolong Mo"
+date: "04/01/2021"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.width = 12)
+load('/Users/babemomo/Dropbox/Coursera/Introduction to Probability and Data with R/CourseraIntroR/brfss2013.Rdata')
+```
+
+# Introduction
+This project aims to analyze the Behavioral Risk Factor Surveillance System (BRFSS) 2013 dataset through three concrete research questions (See research question part).  
+According to the BRFSS data user guide(https://www.cdc.gov/brfss/data_documentation/pdf/UserguideJune2013.pdf), BRFSS is "a cross-sectional telephone survey that state health departments conduct monthly over landline and cellular telephones with standardized questionnaires". **In other words, BRFSS 2013 is an observatory study to investigate the association among variables rather than the causal link**. The sample method is also detailed in the foregoing website. In brief, for landline telephone interviewers which accounted for ~80% of the questionnaires, a stratified strategy was applied based on the geographic division at multiple levels (termed "Disproportionate stratified sampling" in the document)  At lowest geographic level (distinguished by phone area number), the interviewers were randomly selected from the population. For cellular interviewers which account for ~20% of the questionnaires, simple random sampling was conducted at the state's level. **In other words, the sampling of BRFSS 2013 is randomized and can be generalized to the population at large.**  
+In order to evaluate the non-response bias, the BRFSS protocol introduces a disposition code to score each interview attempt. The data quality report which includes response rates is available online (https://www.cdc.gov/brfss/annual_data/2013/pdf/2013_dqr.pdf).   
+As suggested by the data quality report, I quote the following claim:  
+
+> The response rate is the number of respondents who completed the survey as a proportion of all eligible and likely-eligible persons. The median survey response rate for all states, territories and Washington, DC, in 2013 was 46.4, and ranged from 29.0 to 60.3.For detailed information see the BRFSS Summary Data Quality Report.  
+
+Despite the low response rate, BRFSS applied a "raking" weight to scale the data based on demographic characteristics of respondents. The report claimed this ensured accurate estimates for most measures.  
+My project will be focused on the national-wide interpretation of BRFSS data in the U.S., so only only the data of 50 states will be included (i.e. data from the District of Columbia, Puerto Rico, and Guam are excluded). The analysis will be also focused on the data of main survey modules, since optional modules are not investigated by every state. 
+
+# Research questions  
+## 1.Are vegetarian diets inversely correlated with diabetes conditions?  
+Diet is an important factor in causing, treating or controlling diabetes. A vegetarian diet is often recommended for diabetes patients.  Hence, it is interesting to investigate if there is any association between vegetable/fruit consumptions and diabetes conditions.  
+Three variables are involved (the variable names used in table are indicated in parenthesis): Diabetes (*diabete3*), Total Vegetables Consumed Per Day (*X_vegesum*), Total Fruits Consumed Per Day (*X_frutsum*).  
+Since diabetes data are categorical, vegetable/fruit data are continuously numerical, histogram plots will be used to evaluate the associations.  
+
+### Summary statistics  
+adsa
+### Comparison of the distrubution  
+```{r, warning = FALSE, message = FALSE}
+library(tidyverse)
+library(ggplot2)
+library(cowplot)
+df1 <- brfss2013 %>%
+  select(diabete3, X_vegesum, X_frutsum) %>% # Select the variables of interest.
+  drop_na() %>% # Remove missing observations
+  filter(diabete3 != 'Yes, but female told only during pregnancy', diabete3 != 'No, pre-diabetes or borderline diabetes') # Remove diabetes observed only at pregnancy or borderline diabetes condition
+gg1 <- ggplot(df1, aes(log(X_frutsum), fill=diabete3, colour=diabete3)) +
+  geom_histogram(aes(y=0.58*..density..), binwidth = 0.58, alpha=0.2, position="identity") +
+  ggtitle("Diabetes condition vs. Fruit consumption") + 
+  labs(x = "Fruit consumption (mg/day, log scale)", y = "Normalized diabetes counts", fill = "Diabetes", colour = "Diabetes") + 
+  theme_bw()
+gg2 <- ggplot(df1, aes(log(X_vegesum), fill=diabete3, colour=diabete3)) +
+  geom_histogram(aes(y=0.58*..density..), binwidth = 0.58, alpha=0.2, position="identity") +
+  ggtitle("Diabetes condition vs. Vegetable consumption") + 
+  labs(x = "Vegetable consumption (mg/day, log scale)", y = "Normalized diabetes counts", fill = "Diabetes", colour = "Diabetes" ) + 
+  theme_bw()
+plot_grid(gg1, gg2)
+```
+
