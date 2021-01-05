@@ -24,16 +24,17 @@ Despite the low response rate, BRFSS applied a "raking" weight to scale the data
 My project will be focused on the national-wide interpretation of BRFSS data in the U.S., so only only the data of 50 states will be included (i.e. data from the District of Columbia, Puerto Rico, and Guam are excluded). The analysis will be also focused on the data of main survey modules, since optional modules are not investigated by every state. 
 
 # Research questions  
-## 1.Is vegetarian diet inversely correlated with diabetes condition?  
-Diet is an well-recognized factor for diabetes. Vegetarian diet, which mainly consists of vegetable and fruit, is often recommended for diabetes patients. Hence, it is interesting to investigate if there is any association between vegetable/fruit consumptions and diabetes conditions using the BRFSS 2013 dataset.  
+## 1.How is vegetarian diet correlated with diabetes condition?  
+Diet is a well-recognized factor for diabetes. Vegetarian diet, which mainly consists of vegetable and fruit, is often recommended for diabetes patients. Hence, it is interesting to investigate if there is any association between vegetable/fruit consumption and diabetes condition within the BRFSS 2013 dataset.  
 
-* Three variables are involved (the variable names used in table are indicated in parenthesis): Diabetes (*diabete3*), Total Vegetables Consumed Per Day (*X_vegesum*), Total Fruits Consumed Per Day (*X_frutsum*).  
+* Four variables are involved (the variable names used in table are indicated in parenthesis): States(*X_state*), Diabetes (*diabete3*), Total Vegetables Consumed Per Day (*X_vegesum*), Total Fruits Consumed Per Day (*X_frutsum*).  
 * **I will first select the variables of interest and filter out the missing observation using *tidyverse* package; and then summarize the vegetable/fruit consumption using the *summary()* function; at last I will visualize the summary using box plot from the *ggplot2* package.**
 
 ### Summary statistics  
 ```{r, message = FALSE}
 library(tidyverse)
 df1 <- brfss2013 %>%
+  filter(X_state != 'Puerto Rico', X_state != 'Guam', X_state != 'District of Columbia', X_state != '0', X_state != '80') %>% # Remove states that are not in the US 
   select(diabete3, X_vegesum, X_frutsum) %>% # Select the variables of interest.
   drop_na() %>% # Remove missing observations.
   filter(diabete3 != 'Yes, but female told only during pregnancy', diabete3 != 'No, pre-diabetes or borderline diabetes') # Remove diabetes observed only at pregnancy or in borderline conditions.
@@ -56,11 +57,11 @@ Summary of fruit consumption of those who in non-diabetes condition
 ```{r}
 summary(df1$X_frutsum[df1$diabete3 == 'No'])
 ```
-In the comparison of vegetable consumptions, diabetes patients tend to consume less than those who are in non-diabetes conditions (mean: 174.8 vs. 192.6; median: 150.0 vs. 167.0).  
-In the comparison of fruit consumptions, diabetes patients tend to consume less than those who are in non-diabetes conditions (mean: 130.0 vs. 141.3; median: 100.0 vs. 104.0).  
-In other words, non-diabetes conditions are associated with higher consumptions of vegetable and fruit.  
+In the comparison of vegetable consumptions, diabetes patients tended to consume less than those who were in non-diabetes conditions (mean: 174.8 vs. 192.6; median: 150.0 vs. 167.0).  
+In the comparison of fruit consumptions, diabetes patients tended to consume slightly less than those who were in non-diabetes conditions (mean: 130.0 vs. 141.3; median: 100.0 vs. 104.0).  
+In other words, non-diabetes conditions were more likely to be associated with higher consumptions of vegetable and fruit.  
 
-It is worthy noting that there are some extreme values which are 100 times higher than the average; hence the median may be a better indicator. Box plots will be use to visualize the the vegetable/fruit consumptions against different diabetes conditions.  
+It is worthy noting that there are some extreme observations which consume 100 times higher vegetables/fruit than the average; hence the median may be a better indicator. Box plots will be used to visualize the the vegetable/fruit consumptions against different diabetes conditions.  
 
 ### Box plot for data visualization  
 ```{r, warning = FALSE, message = FALSE}
@@ -69,15 +70,75 @@ library(cowplot)
 gg1 <- ggplot(df1, aes(x = diabete3, y = X_vegesum, colour=diabete3)) +
   geom_boxplot() +
   scale_y_log10() + 
-  ggtitle("Diabetes condition vs. Vegetable consumption") + 
-  labs(x = "Diabetes condition", y = "Vegetable consumption (mg/day, log scale)", colour = "Diabetes") + 
+  ggtitle("Vegetable consumption against Diabetes condition") + 
+  labs(x = "Diabetes condition", y = "Vegetable consumption (g/day, log scale)", colour = "Diabetes") + 
   theme_cowplot()
 gg2 <- ggplot(df1, aes(x = diabete3, y = X_frutsum, colour=diabete3)) +
   geom_boxplot() +
   scale_y_log10() + 
-  ggtitle("Diabetes condition vs. Fruit consumption") + 
-  labs(x = "Diabetes condition", y = "Fruit consumption (mg/day, log scale)", colour = "Diabetes") + 
+  ggtitle("Fruit consumption against Diabetes condition") + 
+  labs(x = "Diabetes condition", y = "Fruit consumption (g/day, log scale)", colour = "Diabetes") + 
   theme_cowplot()
 plot_grid(gg1, gg2)
 ```
+The box plot visualization is consistent with the statistic summary; in the US, people in non-diabetes condition consume more vegetables or fruit (On average, 10% more). Although this means only the correlation not the causality, we have a good evidence to support the recommendation of vegan diet for diabetes patients. 
 
+## 2.How is sleeptime correlated with heart attack?  
+Often times, there are reports claiming that sudden death of young people is associated with inadequate sleep time. Since most sudden death of young people are caused by heart attack, it is interesting to investigate whether the heart attack history is associated with inadequate sleep time in young people (age 18 ~ 34). To compare, the data from elder group (age 55 and above) will also be explored.
+
+* Five variables are involved (the variable names used in table are indicated in parenthesis): States(*X_state*), Ages (*X_age_g*), Ever Diagnosed with Heart Attack (*cvdinfr4*), How Much Time Do You Sleep (*sleptim1*).  
+* **I will first select the variables of interest and filter out the missing observation using *tidyverse* package; and then summarize the vegetable/fruit consumption using the *summary()* function; at last I will visualize the summary using box plot from the *ggplot2* package.**
+
+### Summary statistics 
+```{r, message = FALSE}
+young <- brfss2013 %>%
+  filter(X_state != 'Puerto Rico', X_state != 'Guam', X_state != 'District of Columbia', X_state != '0', X_state != '80') %>% # Remove states that are not in the US 
+  select(X_age_g, cvdinfr4, sleptim1) %>% # Select the variables of interest.
+  filter(X_age_g == "Age 18 to 24" | X_age_g == "Age 25 to 34") %>% # Remove observations that are not in young group.
+  drop_na() # Remove missing observations.
+elder <- brfss2013 %>%
+  filter(X_state != 'Puerto Rico', X_state != 'Guam', X_state != 'District of Columbia', X_state != '0', X_state != '80') %>% # Remove states that are not in the US 
+  select(X_age_g, cvdinfr4, sleptim1) %>% # Select the variables of interest.
+  filter(X_age_g == "Age 55 to 64" | X_age_g == "Age 65 or older") %>% # Remove observations that are not in elder group.
+  drop_na() # Remove missing observations.
+```
+
+Summary of the sleep time of young people who was diagnosed heart attack
+```{r}
+summary(young$sleptim1[young$cvdinfr4 == 'Yes'])
+```
+Summary of the sleep time of young people who was NOT diagnosed heart attack
+```{r}
+summary(young$sleptim1[young$cvdinfr4 == 'No'])
+```
+Summary of the sleep time of elder people who was NOT diagnosed heart attack
+```{r}
+summary(elder$sleptim1[elder$cvdinfr4 == 'Yes'])
+```
+Summary of the sleep time of elder people who was NOT diagnosed heart attack
+```{r}
+summary(elder$sleptim1[elder$cvdinfr4 == 'No'])
+```
+In young group, people who was diagnosed heart attack showed ~1 hour less sleep time than those who were not (mean: 6.195 vs. 6.969; median: 6.0 vs. 7.0).  
+In elder group, people who was diagnosed heart attack showed negligible less sleep time (~1.5 minutes) than those who were not  (mean: 7.164 vs. 7.188; median: 7.0 vs. 7.0).  
+In other words, inadequate sleep in young people is more likely to be associated with heart attack.  
+
+It is worthy noting that there are some extreme observations who sleep 24 everyday (likely fake reporting); hence the median may be a better indicator. Box plots will be used to visualize the the vegetable/fruit consumptions against different diabetes conditions.  
+
+### Box plot for data visualization  
+```{r, warning = FALSE}
+young_plot <- ggplot(young, aes(x = cvdinfr4, y = sleptim1, color = cvdinfr4)) +
+  geom_boxplot() +
+  ylim(0, 13) +
+  ggtitle("Sleep time against Heart attack (Young Group)") + 
+  labs(x = "Heart Attack", y = "Sleep time per day", colour = "Heart Attack") + 
+  theme_cowplot()
+elder_plot <- ggplot(elder, aes(x = cvdinfr4, y = sleptim1, color = cvdinfr4)) +
+  geom_boxplot() +
+  ylim(0, 13) +
+  ggtitle("Sleep time against Heart attack (Elder group)") + 
+  labs(x = "Heart Attack", y = "Sleep time per day", colour = "Heart Attack") + 
+  theme_cowplot()
+plot_grid(young_plot, elder_plot)
+```
+The box plot visualization is consistent with the statistic summary; in the US, the inadequate sleep time of young people is more likely to be associated with heart attack than that of the elder group. Although this means only the correlation not the causality, we have a good evidence to ask young people to sleep well. 
