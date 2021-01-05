@@ -24,32 +24,60 @@ Despite the low response rate, BRFSS applied a "raking" weight to scale the data
 My project will be focused on the national-wide interpretation of BRFSS data in the U.S., so only only the data of 50 states will be included (i.e. data from the District of Columbia, Puerto Rico, and Guam are excluded). The analysis will be also focused on the data of main survey modules, since optional modules are not investigated by every state. 
 
 # Research questions  
-## 1.Are vegetarian diets inversely correlated with diabetes conditions?  
-Diet is an important factor in causing, treating or controlling diabetes. A vegetarian diet is often recommended for diabetes patients.  Hence, it is interesting to investigate if there is any association between vegetable/fruit consumptions and diabetes conditions.  
-Three variables are involved (the variable names used in table are indicated in parenthesis): Diabetes (*diabete3*), Total Vegetables Consumed Per Day (*X_vegesum*), Total Fruits Consumed Per Day (*X_frutsum*).  
-Since diabetes data are categorical, vegetable/fruit data are continuously numerical, histogram plots will be used to evaluate the associations.  
+## 1.Is vegetarian diet inversely correlated with diabetes condition?  
+Diet is an well-recognized factor for diabetes. Vegetarian diet, which mainly consists of vegetable and fruit, is often recommended for diabetes patients. Hence, it is interesting to investigate if there is any association between vegetable/fruit consumptions and diabetes conditions using the BRFSS 2013 dataset.  
+
+* Three variables are involved (the variable names used in table are indicated in parenthesis): Diabetes (*diabete3*), Total Vegetables Consumed Per Day (*X_vegesum*), Total Fruits Consumed Per Day (*X_frutsum*).  
+* **I will first select the variables of interest and filter out the missing observation using *tidyverse* package; and then summarize the vegetable/fruit consumption using the *summary()* function; at last I will visualize the summary using box plot from the *ggplot2* package.**
 
 ### Summary statistics  
-adsa
-### Comparison of the distrubution  
-```{r, warning = FALSE, message = FALSE}
+```{r, message = FALSE}
 library(tidyverse)
-library(ggplot2)
-library(cowplot)
 df1 <- brfss2013 %>%
   select(diabete3, X_vegesum, X_frutsum) %>% # Select the variables of interest.
-  drop_na() %>% # Remove missing observations
-  filter(diabete3 != 'Yes, but female told only during pregnancy', diabete3 != 'No, pre-diabetes or borderline diabetes') # Remove diabetes observed only at pregnancy or borderline diabetes condition
-gg1 <- ggplot(df1, aes(log(X_frutsum), fill=diabete3, colour=diabete3)) +
-  geom_histogram(aes(y=0.58*..density..), binwidth = 0.58, alpha=0.2, position="identity") +
-  ggtitle("Diabetes condition vs. Fruit consumption") + 
-  labs(x = "Fruit consumption (mg/day, log scale)", y = "Normalized diabetes counts", fill = "Diabetes", colour = "Diabetes") + 
-  theme_bw()
-gg2 <- ggplot(df1, aes(log(X_vegesum), fill=diabete3, colour=diabete3)) +
-  geom_histogram(aes(y=0.58*..density..), binwidth = 0.58, alpha=0.2, position="identity") +
+  drop_na() %>% # Remove missing observations.
+  filter(diabete3 != 'Yes, but female told only during pregnancy', diabete3 != 'No, pre-diabetes or borderline diabetes') # Remove diabetes observed only at pregnancy or in borderline conditions.
+```
+Summary of vegetable consumption of those who in diabetes condition
+```{r}
+summary(df1$X_vegesum[df1$diabete3 == 'Yes'])
+```
+Summary of vegetable consumption of those who in non-diabetes condition
+```{r}
+summary(df1$X_vegesum[df1$diabete3 == 'No'])
+```
+
+Summary of fruit consumption of those who in diabetes condition
+```{r}
+summary(df1$X_frutsum[df1$diabete3 == 'Yes'])
+```
+
+Summary of fruit consumption of those who in non-diabetes condition
+```{r}
+summary(df1$X_frutsum[df1$diabete3 == 'No'])
+```
+In the comparison of vegetable consumptions, diabetes patients tend to consume less than those who are in non-diabetes conditions (mean: 174.8 vs. 192.6; median: 150.0 vs. 167.0).  
+In the comparison of fruit consumptions, diabetes patients tend to consume less than those who are in non-diabetes conditions (mean: 130.0 vs. 141.3; median: 100.0 vs. 104.0).  
+In other words, non-diabetes conditions are associated with higher consumptions of vegetable and fruit.  
+
+It is worthy noting that there are some extreme values which are 100 times higher than the average; hence the median may be a better indicator. Box plots will be use to visualize the the vegetable/fruit consumptions against different diabetes conditions.  
+
+### Box plot for data visualization  
+```{r, warning = FALSE, message = FALSE}
+library(ggplot2)
+library(cowplot)
+gg1 <- ggplot(df1, aes(x = diabete3, y = X_vegesum, colour=diabete3)) +
+  geom_boxplot() +
+  scale_y_log10() + 
   ggtitle("Diabetes condition vs. Vegetable consumption") + 
-  labs(x = "Vegetable consumption (mg/day, log scale)", y = "Normalized diabetes counts", fill = "Diabetes", colour = "Diabetes" ) + 
-  theme_bw()
+  labs(x = "Diabetes condition", y = "Vegetable consumption (mg/day, log scale)", colour = "Diabetes") + 
+  theme_cowplot()
+gg2 <- ggplot(df1, aes(x = diabete3, y = X_frutsum, colour=diabete3)) +
+  geom_boxplot() +
+  scale_y_log10() + 
+  ggtitle("Diabetes condition vs. Fruit consumption") + 
+  labs(x = "Diabetes condition", y = "Fruit consumption (mg/day, log scale)", colour = "Diabetes") + 
+  theme_cowplot()
 plot_grid(gg1, gg2)
 ```
 
