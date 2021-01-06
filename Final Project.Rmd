@@ -38,7 +38,7 @@ As suggested by the data quality report, I quote the following claim:
 > The response rate is the number of respondents who completed the survey as a proportion of all eligible and likely-eligible persons. The median survey response rate for all states, territories and Washington, DC, in 2013 was 46.4, and ranged from 29.0 to 60.3.For detailed information see the BRFSS Summary Data Quality Report.  
 
 Despite the low response rate, BRFSS applied a "raking" weight to scale the data based on demographic characteristics of respondents. The report claimed this ensured accurate estimates for most measures.  
-My project will be focused on the national-wide interpretation of BRFSS data in the U.S., so only only the data of 50 states will be included (i.e. data from the District of Columbia, Puerto Rico, and Guam are excluded). The analysis will be also focused on the data of main survey modules, since optional modules are not investigated by every state.  
+My project will be focused on the national-wide interpretation of BRFSS data in the U.S., so only the data of 50 states will be included (i.e. data from the District of Columbia, Puerto Rico, and Guam are excluded). The analysis will be also focused on the data of main survey modules, since optional modules are not investigated by every state.  
 
 * * *
 
@@ -53,7 +53,7 @@ Often times, there are reports claiming that sudden death of young people is ass
 
 
 **Research question 3: How is income level correlated with BMI categories (i.e. underweight, obese, etc.)?**  
-During everyday talk, people often argue about the correlation between income level and BMI category. In the US, some people think that low income is associated with underweight, since people in poverty are struggling to get food; while others suggest that in developed country such as the US there is no real "poverty" characteristic of hunger, rather, low income often means obesity since "healthy food" like vegetables and fruit is generally much more expensive than "junk food" which contains much higher calories per unit of weight.  
+During everyday talk, people often argue about the correlation between income level and BMI category. In the US, some people think that low income is associated with underweight, since people in poverty are struggling to get food; while others suggest that in developed countries such as the US there is no real "poverty" characteristic of hunger, rather, low income often means obesity since "healthy food" like vegetables and fruit is generally much more expensive than "junk food" which contains much higher calories per unit of weight.  
 It is thus interesting to look into the BRFSS 2013 data set to find out the association between these two indexes (BMI category and income level).  
 
 * * *
@@ -183,7 +183,7 @@ data <- as.data.frame(t(apply(moneyweight_table, 1, function(i) i*100/sum(i)))) 
 cat('Percentages of BMI categories in different income groups', sep = '\n')
 print(data)
 ```
-From the distribution of BMI categories in each income group, we can see that as people get richer, the underweight rates decreases (2.8% > 2.1% > 1.7% > 1.3% > 1.2%); interestingly, the obesity rates also decrease (35.9% > 32.8% > 30.9% > 30.3% > 26.2%). This means the aforementioned claims (low income is associated with underweight vs. obesity) have certain grounds regardless of the causality. 
+From the distribution of BMI categories in each income group, we can see that as people get richer, the underweight rates decrease (2.8% > 2.1% > 1.7% > 1.3% > 1.2%); interestingly, the obesity rates also decrease (35.9% > 32.8% > 30.9% > 30.3% > 26.2%). This means both the aforementioned claims (low income is associated with underweight or obesity) have certain grounds regardless of the causality. 
 
 **Data visualization (stacked bar plot)**
 ```{r, fig.height = 5, fig.width = 6, fig.align = "center", message = FALSE}
