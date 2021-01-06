@@ -24,39 +24,35 @@ Despite the low response rate, BRFSS applied a "raking" weight to scale the data
 My project will be focused on the national-wide interpretation of BRFSS data in the U.S., so only only the data of 50 states will be included (i.e. data from the District of Columbia, Puerto Rico, and Guam are excluded). The analysis will be also focused on the data of main survey modules, since optional modules are not investigated by every state. 
 
 # Research questions  
-## 1.How is vegetarian diet correlated with diabetes condition?  
+## 1. How is vegetarian diet correlated with diabetes condition?  
 Diet is a well-recognized factor for diabetes. Vegetarian diet, which mainly consists of vegetable and fruit, is often recommended for diabetes patients. Hence, it is interesting to investigate if there is any association between vegetable/fruit consumption and diabetes condition within the BRFSS 2013 dataset.  
 
 * Four variables are involved (the variable names used in table are indicated in parenthesis): States(*X_state*), Diabetes (*diabete3*), Total Vegetables Consumed Per Day (*X_vegesum*), Total Fruits Consumed Per Day (*X_frutsum*).  
-* **I will first select the variables of interest and filter out the missing observation using *tidyverse* package; and then summarize the vegetable/fruit consumption using the *summary()* function; at last I will visualize the summary using box plot from the *ggplot2* package.**
+* **I will first select the variables of interest and filter out the missing observation using *tidyverse* package; and then summarize the vegetable/fruit consumption indifferent groups using the *summary()* function; at last I will visualize the summary using box plot from the *ggplot2* package.**
 
 ### Summary statistics  
-```{r, message = FALSE}
+```{r, message = FALSE, results='hold'}
 library(tidyverse)
 df1 <- brfss2013 %>%
   filter(X_state != 'Puerto Rico', X_state != 'Guam', X_state != 'District of Columbia', X_state != '0', X_state != '80') %>% # Remove states that are not in the US 
   select(diabete3, X_vegesum, X_frutsum) %>% # Select the variables of interest.
   drop_na() %>% # Remove missing observations.
   filter(diabete3 != 'Yes, but female told only during pregnancy', diabete3 != 'No, pre-diabetes or borderline diabetes') # Remove diabetes observed only at pregnancy or in borderline conditions.
-```
-Summary of vegetable consumption of those who in diabetes condition
-```{r}
-summary(df1$X_vegesum[df1$diabete3 == 'Yes'])
-```
-Summary of vegetable consumption of those who in non-diabetes condition
-```{r}
-summary(df1$X_vegesum[df1$diabete3 == 'No'])
+# Below is for generating and printing a series of summary tables for different categories.
+summary_1_1 <- summary(df1$X_vegesum[df1$diabete3 == 'Yes'])
+summary_1_2 <- summary(df1$X_vegesum[df1$diabete3 == 'No'])
+summary_1_3 <- summary(df1$X_frutsum[df1$diabete3 == 'Yes'])
+summary_1_4 <- summary(df1$X_frutsum[df1$diabete3 == 'No'])
+cat('Summary of vegetable consumption of those who in diabetes condition', sep = '\n')
+print(summary_1_1)
+cat('Summary of vegetable consumption of those who in non-diabetes condition', sep = '\n')
+print(summary_1_2)
+cat("Summary of fruit consumption of those who in diabetes condition", sep = '\n')
+print(summary_1_3)
+cat("Summary of fruit consumption of those who in non-diabetes condition", sep = '\n')
+print(summary_1_4)
 ```
 
-Summary of fruit consumption of those who in diabetes condition
-```{r}
-summary(df1$X_frutsum[df1$diabete3 == 'Yes'])
-```
-
-Summary of fruit consumption of those who in non-diabetes condition
-```{r}
-summary(df1$X_frutsum[df1$diabete3 == 'No'])
-```
 In the comparison of vegetable consumptions, diabetes patients tended to consume less than those who were in non-diabetes conditions (mean: 174.8 vs. 192.6; median: 150.0 vs. 167.0).  
 In the comparison of fruit consumptions, diabetes patients tended to consume slightly less than those who were in non-diabetes conditions (mean: 130.0 vs. 141.3; median: 100.0 vs. 104.0).  
 In other words, non-diabetes conditions were more likely to be associated with higher consumptions of vegetable and fruit.  
@@ -83,14 +79,14 @@ plot_grid(gg1, gg2)
 ```
 The box plot visualization is consistent with the statistic summary; in the US, people in non-diabetes condition consume more vegetables or fruit (On average, 10% more). Although this means only the correlation not the causality, we have a good evidence to support the recommendation of vegan diet for diabetes patients. 
 
-## 2.How is inadequate googsleeptime correlated with heart attack?  
+## 2. How is inadequate sleep time correlated with heart attack?  
 Often times, there are reports claiming that sudden death of young people is associated with inadequate sleep time. Since most sudden death of young people are caused by heart attack, it is interesting to investigate whether the heart attack history is associated with inadequate sleep time in young people (age 18 ~ 34). To compare, the data from elder group (age 55 and above) will also be explored.
 
 * Five variables are involved (the variable names used in table are indicated in parenthesis): States(*X_state*), Ages (*X_age_g*), Ever Diagnosed with Heart Attack (*cvdinfr4*), How Much Time Do You Sleep (*sleptim1*).  
-* **I will first select the variables of interest and filter out the missing observation using *tidyverse* package; and then summarize the vegetable/fruit consumption using the *summary()* function; at last I will visualize the summary using box plot from the *ggplot2* package.**
+* **I will first select the variables of interest and filter out the missing observation using *tidyverse* package; and then summarize the sleep time in different groups using the *summary()* function; at last I will visualize the summary using box plot from the *ggplot2* package.**
 
 ### Summary statistics 
-```{r, message = FALSE}
+```{r, message = FALSE, results="hold"}
 young <- brfss2013 %>%
   filter(X_state != 'Puerto Rico', X_state != 'Guam', X_state != 'District of Columbia', X_state != '0', X_state != '80') %>% # Remove states that are not in the US 
   select(X_age_g, cvdinfr4, sleptim1) %>% # Select the variables of interest.
@@ -101,24 +97,21 @@ elder <- brfss2013 %>%
   select(X_age_g, cvdinfr4, sleptim1) %>% # Select the variables of interest.
   filter(X_age_g == "Age 55 to 64" | X_age_g == "Age 65 or older") %>% # Remove observations that are not in elder group.
   drop_na() # Remove missing observations.
+# Below is for generating and printing a series of summary tables for different categories.
+summary_2_1 <- summary(young$sleptim1[young$cvdinfr4 == 'Yes'])
+summary_2_2 <- summary(young$sleptim1[young$cvdinfr4 == 'No'])
+summary_2_3 <- summary(elder$sleptim1[elder$cvdinfr4 == 'Yes'])
+summary_2_4 <- summary(elder$sleptim1[elder$cvdinfr4 == 'No'])
+cat('Summary of the sleep time of young people who was diagnosed heart attack', sep = '\n')
+print(summary_2_1)
+cat('Summary of the sleep time of young people who was NOT diagnosed heart attack', sep = '\n')
+print(summary_2_2)
+cat("Summary of the sleep time of elder people who was diagnosed heart attack", sep = '\n')
+print(summary_2_3)
+cat("Summary of the sleep time of elder people who was NOT diagnosed heart attack", sep = '\n')
+print(summary_2_4)
 ```
 
-Summary of the sleep time of young people who was diagnosed heart attack
-```{r}
-summary(young$sleptim1[young$cvdinfr4 == 'Yes'])
-```
-Summary of the sleep time of young people who was NOT diagnosed heart attack
-```{r}
-summary(young$sleptim1[young$cvdinfr4 == 'No'])
-```
-Summary of the sleep time of elder people who was NOT diagnosed heart attack
-```{r}
-summary(elder$sleptim1[elder$cvdinfr4 == 'Yes'])
-```
-Summary of the sleep time of elder people who was NOT diagnosed heart attack
-```{r}
-summary(elder$sleptim1[elder$cvdinfr4 == 'No'])
-```
 In young group, people who was diagnosed heart attack showed ~1 hour less sleep time than those who were not (mean: 6.195 vs. 6.969; median: 6.0 vs. 7.0).  
 In elder group, people who was diagnosed heart attack showed negligibly less sleep time (~1.5 minutes) than those who were not  (mean: 7.164 vs. 7.188; median: 7.0 vs. 7.0).  
 In other words, inadequate sleep in young people is more likely to be associated with heart attack.  
@@ -143,26 +136,36 @@ plot_grid(young_plot, elder_plot)
 ```
 The box plot visualization is consistent with the statistic summary; in the US, the inadequate sleep time of young people is more likely to be associated with heart attack than that of the elder group. Although this means only the correlation not the causality, we have a good evidence to ask young people to sleep well. 
 
-## 3.How is income level correlated with BMI categories (i.e. underweight, obese, ect.)?  
-Often times, there are reports claiming that sudden death of young people is associated with inadequate sleep time. Since most sudden death of young people are caused by heart attack, it is interesting to investigate whether the heart attack history is associated with inadequate sleep time in young people (age 18 ~ 34). To compare, the data from elder group (age 55 and above) will also be explored.
+## 3. How is income level correlated with BMI categories (i.e. underweight, obese, etc.)?  
+During everyday talk, people often argue about the correlation between income level and BMI category. In the US, some people think that low income is associated with underweight, since people in poverty are struggling to get food; while others suggest that in developed country such as the US there is no real "poverty" characteristic of hunger, rather, low income often suggests obesity since "healthy food" like vegetables and fruit is generally much more expensive than "junk food" which contains much higher calories per unit of weight.  
+It is thus interesting to look into the BRFSS 2013 data set to find out the association between these two indexes (BMI category and income level).
 
-```{r}
+* Three variables are involved (the variable names used in table are indicated in parenthesis): States(*X_state*), Computed Income Categories (*X_incomg*), Computed Body Mass Index Categories (*X_bmi5cat*). 
+* **I will first select the variables of interest and filter out the missing observation using *tidyverse* package; and then summarize the contingency table (BMI category vs. Income level) using the *table()* function ; at last I will visualize the summary using stacked bar plot from the *ggplot2* package.**  
+
+### Summary statistics  
+```{r, results='hold'}
 moneyweight_df <- brfss2013 %>%  
   filter(X_state != 'Puerto Rico', X_state != 'Guam', X_state != 'District of Columbia', X_state != '0', X_state != '80') %>% # Remove states that are not in the US 
   select(X_incomg, X_bmi5cat) %>% # Select the variables of interest.
   drop_na() # Remove missing observations.
 moneyweight_table <- table(moneyweight_df$X_incomg, moneyweight_df$X_bmi5cat) # Make a contingency table of income against BMI category.
-data <- as.data.frame(t(apply(moneyweight_table, 1, function(i) i/sum(i))))
-data
+data <- as.data.frame(t(apply(moneyweight_table, 1, function(i) i*100/sum(i)))) # Transform numbers in the contingency table into percentage data.
+cat('Percentages of BMI categories in different income groups', sep = '\n')
+print(data)
 ```
+From the distribution of BMI categories in each income group, we can see that as people get richer, the underweight rates decreases (2.8% > 2.1% > 1.7% > 1.3% > 1.2%); interestingly, the obesity rates also decrease (35.9% > 32.8% > 30.9% > 30.3% > 26.2%). This means the aforementioned claims (low income is associated with underweight vs. obesity) have certain grounds regardless of the causality. 
 
-```{r, fig.height = 5, fig.width = 6, message = FALSE}
+### Stacked bar plot for data visualization  
+```{r, fig.height = 5, fig.width = 6, fig.align = "center", message = FALSE}
 library(reshape2)
-data2<- melt(cbind(income_level= rownames(data),data), id = 'income_level')
-data2$income_level <- factor(data2$income_level, levels = c('Less than $15,000','$15,000 to less than $25,000', '$25,000 to less than $35,000', '$35,000 to less than $50,000', '$50,000 or more'))
+data2<- melt(cbind(income_level= rownames(data),data), id = 'income_level') # Reshape the data frame to prepare for stacked plot.
+data2$income_level <- factor(data2$income_level, levels = c('Less than $15,000','$15,000 to less than $25,000', '$25,000 to less than $35,000', '$35,000 to less than $50,000', '$50,000 or more')) # Sort the level of income; this will make the x-labels of stacked plot display as desired.
 ggplot(data2, aes(x=income_level, y=value, fill=variable)) + 
   geom_bar(position="fill", stat="identity", colour = 'black') +
+  ggtitle("BMI category vs. Income level") + 
+  labs(x = "Income levels", y = "Proportion", fill = "BMI category", colour = "BMI category") +
   theme_cowplot() +
   theme(axis.text.x = element_text(angle = 30, hjust = 1))
 ```
-
+The visualization of stacked bar plot is consistent with the statistic summary; in the US, as people get richer, both the underweight rates and obesity rates decrease. In other words, high income is more likely to be associated with standard BMI.
