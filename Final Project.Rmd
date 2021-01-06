@@ -1,10 +1,12 @@
 ---
 title: "Exploring the BRFSS data"
-output: 
+author: Guolong Mo
+output:
   html_document:
     fig_height: 4
     highlight: pygments
     theme: spacelab
+  pdf_document: default
 ---
 
 ## Setup
