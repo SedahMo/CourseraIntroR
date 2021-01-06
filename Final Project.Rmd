@@ -1,18 +1,33 @@
 ---
-title: "Analysis on BRFSS2013"
-author: "Guolong Mo"
-date: "04/01/2021"
-output:
-  html_document: default
-  pdf_document: default
+title: "Exploring the BRFSS data"
+output: 
+  html_document:
+    fig_height: 4
+    highlight: pygments
+    theme: spacelab
 ---
 
+## Setup
+### Load packages
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, fig.width = 12, fig.height = 6)
-load('/Users/babemomo/Dropbox/Coursera/Introduction to Probability and Data with R/CourseraIntroR/brfss2013.Rdata')
+knitr::opts_chunk$set(echo = TRUE, fig.width = 12)
+```
+```{r load-packages, message = FALSE}
+library(ggplot2)
+library(dplyr)
+library(tidyverse)
+library(cowplot)
+library(reshape2)
+```
+### Load data
+```{r load-data}
+load('brfss2013.Rdata')
 ```
 
-# Introduction
+
+* * *
+
+## Part 1: Data  
 This project aims to analyze the Behavioral Risk Factor Surveillance System (BRFSS) 2013 dataset through three concrete research questions (See research question part).  
 According to the BRFSS data user guide(https://www.cdc.gov/brfss/data_documentation/pdf/UserguideJune2013.pdf), BRFSS is "a cross-sectional telephone survey that state health departments conduct monthly over landline and cellular telephones with standardized questionnaires". **In other words, BRFSS 2013 is an observatory study to investigate the association among variables rather than the causal link**. The sample method is also detailed in the foregoing website. In brief, for landline telephone interviewers which accounted for ~80% of the questionnaires, a stratified strategy was applied based on the geographic division at multiple levels (termed "Disproportionate stratified sampling" in the document)  At lowest geographic level (distinguished by phone area number), the interviewers were randomly selected from the population. For cellular interviewers which account for ~20% of the questionnaires, simple random sampling was conducted at the state's level. **In other words, the sampling of BRFSS 2013 is randomized and can be generalized to the population at large.**  
 In order to evaluate the non-response bias, the BRFSS protocol introduces a disposition code to score each interview attempt. The data quality report which includes response rates is available online (https://www.cdc.gov/brfss/annual_data/2013/pdf/2013_dqr.pdf).   
@@ -21,18 +36,35 @@ As suggested by the data quality report, I quote the following claim:
 > The response rate is the number of respondents who completed the survey as a proportion of all eligible and likely-eligible persons. The median survey response rate for all states, territories and Washington, DC, in 2013 was 46.4, and ranged from 29.0 to 60.3.For detailed information see the BRFSS Summary Data Quality Report.  
 
 Despite the low response rate, BRFSS applied a "raking" weight to scale the data based on demographic characteristics of respondents. The report claimed this ensured accurate estimates for most measures.  
-My project will be focused on the national-wide interpretation of BRFSS data in the U.S., so only only the data of 50 states will be included (i.e. data from the District of Columbia, Puerto Rico, and Guam are excluded). The analysis will be also focused on the data of main survey modules, since optional modules are not investigated by every state. 
+My project will be focused on the national-wide interpretation of BRFSS data in the U.S., so only only the data of 50 states will be included (i.e. data from the District of Columbia, Puerto Rico, and Guam are excluded). The analysis will be also focused on the data of main survey modules, since optional modules are not investigated by every state.  
 
-# Research questions  
-## 1. How is vegetarian diet correlated with diabetes condition?  
+* * *
+
+## Part 2: Research questions
+
+**Research question 1: How is vegetarian diet correlated with diabetes condition?**
 Diet is a well-recognized factor for diabetes. Vegetarian diet, which mainly consists of vegetable and fruit, is often recommended for diabetes patients. Hence, it is interesting to investigate if there is any association between vegetable/fruit consumption and diabetes condition within the BRFSS 2013 dataset.  
 
-* Four variables are involved (the variable names used in table are indicated in parenthesis): States(*X_state*), Diabetes (*diabete3*), Total Vegetables Consumed Per Day (*X_vegesum*), Total Fruits Consumed Per Day (*X_frutsum*).  
-* **I will first select the variables of interest and filter out the missing observation using *tidyverse* package; and then summarize the vegetable/fruit consumption indifferent groups using the *summary()* function; at last I will visualize the summary using box plot from the *ggplot2* package.**
 
-### Summary statistics  
+**Research question 2: How is inadequate sleep time correlated with heart attack?**  
+Often times, there are reports claiming that sudden death of young people is associated with inadequate sleep time. Since most sudden death of young people are caused by heart attack, it is interesting to investigate whether the heart attack history is associated with inadequate sleep time in young people (age 18 ~ 34). To compare, the data from elder group (age 55 and above) will also be explored.  
+
+
+**Research question 3: How is income level correlated with BMI categories (i.e. underweight, obese, etc.)?**  
+During everyday talk, people often argue about the correlation between income level and BMI category. In the US, some people think that low income is associated with underweight, since people in poverty are struggling to get food; while others suggest that in developed country such as the US there is no real "poverty" characteristic of hunger, rather, low income often means obesity since "healthy food" like vegetables and fruit is generally much more expensive than "junk food" which contains much higher calories per unit of weight.  
+It is thus interesting to look into the BRFSS 2013 data set to find out the association between these two indexes (BMI category and income level).  
+
+* * *
+
+## Part 3: Exploratory data analysis
+
+**Research question 1: How is vegetarian diet correlated with diabetes condition?**
+
+* Four variables are involved (the variable names used in table are indicated in parenthesis): States(*X_state*), Diabetes (*diabete3*), Total Vegetables Consumed Per Day (*X_vegesum*), Total Fruits Consumed Per Day (*X_frutsum*).  
+* **I will first select the variables of interest and filter out missing observations using *tidyverse* package; and then summarize the vegetable/fruit consumption indifferent groups using the *summary()* function; at last I will visualize the summary using box plot from the *ggplot2* package.**
+
+**Summary statistics**
 ```{r, message = FALSE, results='hold'}
-library(tidyverse)
 df1 <- brfss2013 %>%
   filter(X_state != 'Puerto Rico', X_state != 'Guam', X_state != 'District of Columbia', X_state != '0', X_state != '80') %>% # Remove states that are not in the US 
   select(diabete3, X_vegesum, X_frutsum) %>% # Select the variables of interest.
@@ -59,10 +91,8 @@ In other words, non-diabetes conditions were more likely to be associated with h
 
 It is worthy noting that there are some extreme observations which consume 100 times higher vegetables/fruit than the average; hence the median may be a better indicator. Box plots will be used to visualize the the vegetable/fruit consumptions against different diabetes conditions.  
 
-### Box plot for data visualization  
+**Data visualization (Box plot)**  
 ```{r, warning = FALSE, message = FALSE}
-library(ggplot2)
-library(cowplot)
 gg1 <- ggplot(df1, aes(x = diabete3, y = X_vegesum, colour=diabete3)) +
   geom_boxplot() +
   scale_y_log10() + 
@@ -79,13 +109,12 @@ plot_grid(gg1, gg2)
 ```
 The box plot visualization is consistent with the statistic summary; in the US, people in non-diabetes condition consume more vegetables or fruit (On average, 10% more). Although this means only the correlation not the causality, we have a good evidence to support the recommendation of vegan diet for diabetes patients. 
 
-## 2. How is inadequate sleep time correlated with heart attack?  
-Often times, there are reports claiming that sudden death of young people is associated with inadequate sleep time. Since most sudden death of young people are caused by heart attack, it is interesting to investigate whether the heart attack history is associated with inadequate sleep time in young people (age 18 ~ 34). To compare, the data from elder group (age 55 and above) will also be explored.
+**Research question 2: How is inadequate sleep time correlated with heart attack?**  
 
 * Five variables are involved (the variable names used in table are indicated in parenthesis): States(*X_state*), Ages (*X_age_g*), Ever Diagnosed with Heart Attack (*cvdinfr4*), How Much Time Do You Sleep (*sleptim1*).  
-* **I will first select the variables of interest and filter out the missing observation using *tidyverse* package; and then summarize the sleep time in different groups using the *summary()* function; at last I will visualize the summary using box plot from the *ggplot2* package.**
+* **I will first select the variables of interest and filter out missing observations using *tidyverse* package; and then summarize the sleep time in different groups using the *summary()* function; at last I will visualize the summary using box plot from the *ggplot2* package.**  
 
-### Summary statistics 
+**Summary statistics**
 ```{r, message = FALSE, results="hold"}
 young <- brfss2013 %>%
   filter(X_state != 'Puerto Rico', X_state != 'Guam', X_state != 'District of Columbia', X_state != '0', X_state != '80') %>% # Remove states that are not in the US 
@@ -118,7 +147,7 @@ In other words, inadequate sleep in young people is more likely to be associated
 
 It is worthy noting that there are some extreme observations who sleep 24 everyday (likely fake reporting); hence the median may be a better indicator. Box plots will be used to visualize the the vegetable/fruit consumptions against different diabetes conditions.  
 
-### Box plot for data visualization  
+**Data visualization (box plot)** 
 ```{r, warning = FALSE}
 young_plot <- ggplot(young, aes(x = cvdinfr4, y = sleptim1, color = cvdinfr4)) +
   geom_boxplot() +
@@ -136,14 +165,12 @@ plot_grid(young_plot, elder_plot)
 ```
 The box plot visualization is consistent with the statistic summary; in the US, the inadequate sleep time of young people is more likely to be associated with heart attack than that of the elder group. Although this means only the correlation not the causality, we have a good evidence to ask young people to sleep well. 
 
-## 3. How is income level correlated with BMI categories (i.e. underweight, obese, etc.)?  
-During everyday talk, people often argue about the correlation between income level and BMI category. In the US, some people think that low income is associated with underweight, since people in poverty are struggling to get food; while others suggest that in developed country such as the US there is no real "poverty" characteristic of hunger, rather, low income often suggests obesity since "healthy food" like vegetables and fruit is generally much more expensive than "junk food" which contains much higher calories per unit of weight.  
-It is thus interesting to look into the BRFSS 2013 data set to find out the association between these two indexes (BMI category and income level).
+**Research question 3: How is income level correlated with BMI categories (i.e. underweight, obese, etc.)?** 
 
 * Three variables are involved (the variable names used in table are indicated in parenthesis): States(*X_state*), Computed Income Categories (*X_incomg*), Computed Body Mass Index Categories (*X_bmi5cat*). 
-* **I will first select the variables of interest and filter out the missing observation using *tidyverse* package; and then summarize the contingency table (BMI category vs. Income level) using the *table()* function ; at last I will visualize the summary using stacked bar plot from the *ggplot2* package.**  
+* **I will first select the variables of interest and filter out missing observations using *tidyverse* package; and then summarize the contingency table (BMI category vs. Income level) using the *table()* function ; at last I will visualize the summary using stacked bar plot from the *ggplot2* package.**  
 
-### Summary statistics  
+**Summary statistics**  
 ```{r, results='hold'}
 moneyweight_df <- brfss2013 %>%  
   filter(X_state != 'Puerto Rico', X_state != 'Guam', X_state != 'District of Columbia', X_state != '0', X_state != '80') %>% # Remove states that are not in the US 
@@ -156,9 +183,8 @@ print(data)
 ```
 From the distribution of BMI categories in each income group, we can see that as people get richer, the underweight rates decreases (2.8% > 2.1% > 1.7% > 1.3% > 1.2%); interestingly, the obesity rates also decrease (35.9% > 32.8% > 30.9% > 30.3% > 26.2%). This means the aforementioned claims (low income is associated with underweight vs. obesity) have certain grounds regardless of the causality. 
 
-### Stacked bar plot for data visualization  
+**Data visualization (stacked bar plot)**
 ```{r, fig.height = 5, fig.width = 6, fig.align = "center", message = FALSE}
-library(reshape2)
 data2<- melt(cbind(income_level= rownames(data),data), id = 'income_level') # Reshape the data frame to prepare for stacked plot.
 data2$income_level <- factor(data2$income_level, levels = c('Less than $15,000','$15,000 to less than $25,000', '$25,000 to less than $35,000', '$35,000 to less than $50,000', '$50,000 or more')) # Sort the level of income; this will make the x-labels of stacked plot display as desired.
 ggplot(data2, aes(x=income_level, y=value, fill=variable)) + 
