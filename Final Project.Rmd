@@ -8,7 +8,7 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, fig.width = 12)
+knitr::opts_chunk$set(echo = TRUE, fig.width = 12, fig.height = 6)
 load('/Users/babemomo/Dropbox/Coursera/Introduction to Probability and Data with R/CourseraIntroR/brfss2013.Rdata')
 ```
 
@@ -83,7 +83,7 @@ plot_grid(gg1, gg2)
 ```
 The box plot visualization is consistent with the statistic summary; in the US, people in non-diabetes condition consume more vegetables or fruit (On average, 10% more). Although this means only the correlation not the causality, we have a good evidence to support the recommendation of vegan diet for diabetes patients. 
 
-## 2.How is sleeptime correlated with heart attack?  
+## 2.How is inadequate googsleeptime correlated with heart attack?  
 Often times, there are reports claiming that sudden death of young people is associated with inadequate sleep time. Since most sudden death of young people are caused by heart attack, it is interesting to investigate whether the heart attack history is associated with inadequate sleep time in young people (age 18 ~ 34). To compare, the data from elder group (age 55 and above) will also be explored.
 
 * Five variables are involved (the variable names used in table are indicated in parenthesis): States(*X_state*), Ages (*X_age_g*), Ever Diagnosed with Heart Attack (*cvdinfr4*), How Much Time Do You Sleep (*sleptim1*).  
@@ -120,7 +120,7 @@ Summary of the sleep time of elder people who was NOT diagnosed heart attack
 summary(elder$sleptim1[elder$cvdinfr4 == 'No'])
 ```
 In young group, people who was diagnosed heart attack showed ~1 hour less sleep time than those who were not (mean: 6.195 vs. 6.969; median: 6.0 vs. 7.0).  
-In elder group, people who was diagnosed heart attack showed negligible less sleep time (~1.5 minutes) than those who were not  (mean: 7.164 vs. 7.188; median: 7.0 vs. 7.0).  
+In elder group, people who was diagnosed heart attack showed negligibly less sleep time (~1.5 minutes) than those who were not  (mean: 7.164 vs. 7.188; median: 7.0 vs. 7.0).  
 In other words, inadequate sleep in young people is more likely to be associated with heart attack.  
 
 It is worthy noting that there are some extreme observations who sleep 24 everyday (likely fake reporting); hence the median may be a better indicator. Box plots will be used to visualize the the vegetable/fruit consumptions against different diabetes conditions.  
@@ -142,3 +142,27 @@ elder_plot <- ggplot(elder, aes(x = cvdinfr4, y = sleptim1, color = cvdinfr4)) +
 plot_grid(young_plot, elder_plot)
 ```
 The box plot visualization is consistent with the statistic summary; in the US, the inadequate sleep time of young people is more likely to be associated with heart attack than that of the elder group. Although this means only the correlation not the causality, we have a good evidence to ask young people to sleep well. 
+
+## 3.How is income level correlated with BMI categories (i.e. underweight, obese, ect.)?  
+Often times, there are reports claiming that sudden death of young people is associated with inadequate sleep time. Since most sudden death of young people are caused by heart attack, it is interesting to investigate whether the heart attack history is associated with inadequate sleep time in young people (age 18 ~ 34). To compare, the data from elder group (age 55 and above) will also be explored.
+
+```{r}
+moneyweight_df <- brfss2013 %>%  
+  filter(X_state != 'Puerto Rico', X_state != 'Guam', X_state != 'District of Columbia', X_state != '0', X_state != '80') %>% # Remove states that are not in the US 
+  select(X_incomg, X_bmi5cat) %>% # Select the variables of interest.
+  drop_na() # Remove missing observations.
+moneyweight_table <- table(moneyweight_df$X_incomg, moneyweight_df$X_bmi5cat) # Make a contingency table of income against BMI category.
+data <- as.data.frame(t(apply(moneyweight_table, 1, function(i) i/sum(i))))
+data
+```
+
+```{r, fig.height = 5, fig.width = 6, message = FALSE}
+library(reshape2)
+data2<- melt(cbind(income_level= rownames(data),data), id = 'income_level')
+data2$income_level <- factor(data2$income_level, levels = c('Less than $15,000','$15,000 to less than $25,000', '$25,000 to less than $35,000', '$35,000 to less than $50,000', '$50,000 or more'))
+ggplot(data2, aes(x=income_level, y=value, fill=variable)) + 
+  geom_bar(position="fill", stat="identity", colour = 'black') +
+  theme_cowplot() +
+  theme(axis.text.x = element_text(angle = 30, hjust = 1))
+```
+
